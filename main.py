@@ -1,0 +1,18 @@
+import asyncio
+import logging
+
+from config import bot, dispatcher
+import handlers
+import data
+
+
+async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dispatcher.start_polling(bot, allowed_updates=dispatcher.resolve_used_update_types())
+
+logging.basicConfig(level=logging.INFO)
+
+
+if __name__ == "__main__":
+    data.create_tables()
+    asyncio.run(main())
