@@ -8,7 +8,7 @@ import lines
 
 def insert_new_user_into_database_market(user_id: int) -> None:
     try:
-        cursor.execute('INSERT INTO market VALUES (?, ?)', (user_id, '[]'))
+        cursor.execute('INSERT INTO market VALUES (%s, %s)', (user_id, '[]'))
     except:
         print(f'> insert user {user_id} into database/market: error.')
     else:
@@ -30,9 +30,9 @@ def check_new_ticker_existence(ticker: str) -> bool:
 
 
 def check_new_ticker_in_database_market_user_tickers(ticker: str, user_id: int) -> bool:
-    cursor.execute('SELECT tickers FROM market WHERE user_id = ?', (user_id,))
+    cursor.execute('SELECT tickers FROM market WHERE user_id = %s', (user_id,))
 
-    user_tickers_from_db = select_user_tickers_from_database_market(user_id=user_id)
+    user_tickers_from_db: list = select_user_tickers_from_database_market(user_id=user_id)
 
     if ticker in user_tickers_from_db:
         return True
@@ -48,10 +48,9 @@ def check_user_tickers_limit(tickers_list: list) -> bool:
 
 
 def select_user_tickers_from_database_market(user_id: int) -> list:
-    cursor.execute(f'SELECT tickers FROM market WHERE user_id = ?', (user_id, ))
-
+    cursor.execute(f'SELECT tickers FROM market WHERE user_id = %s', (user_id, ))
     # Parse tickers list: str from database and convert it to list
-    user_tickers: list = json.loads(str(cursor.fetchall()[0][0].replace("'", '"')))
+    user_tickers: list = json.loads(cursor.fetchall()[0][0])
 
     return user_tickers
 
@@ -64,7 +63,6 @@ def tickers_line_constructor(tickers_list: list) -> str:
 def add_new_ticker_for_user_in_database_market(user_id: int, new_ticker: str) -> str:
     if check_new_ticker_existence(ticker=new_ticker):
         if not check_new_ticker_in_database_market_user_tickers(ticker=new_ticker, user_id=user_id):
-
             # Fetch user tickers for check limit and formatted final message
             user_tickers: list = select_user_tickers_from_database_market(user_id=user_id)
 
@@ -78,7 +76,7 @@ def add_new_ticker_for_user_in_database_market(user_id: int, new_ticker: str) ->
 
                 try:
                     # Update user tickers in database/market.
-                    cursor.execute('UPDATE market SET tickers = ? WHERE user_id = ?', (tickers_line, user_id))
+                    cursor.execute('UPDATE market SET tickers = %s WHERE user_id = %s', (tickers_line, user_id))
                 except:
                     print(f'> add ticker {new_ticker} to user {user_id}: error.')
 
@@ -124,7 +122,7 @@ def delete_user_ticker_from_database(user_id: int, ticker: str) -> str:
 
         try:
             # Update user tickers in database/market.
-            cursor.execute('UPDATE market SET tickers = ? WHERE user_id = ?', (tickers_line, user_id))
+            cursor.execute('UPDATE market SET tickers = %s WHERE user_id = %s', (tickers_line, user_id))
         except:
             print(f'> delete ticker {ticker} from user {user_id}: error.')
 
